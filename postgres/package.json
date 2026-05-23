@@ -1,0 +1,54 @@
+{
+	"name": "@absolutejs/queue-postgres",
+	"version": "0.0.1",
+	"description": "Postgres (Drizzle) storage adapter for @absolutejs/queue",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/absolutejs/queue-adapters.git",
+		"directory": "postgres"
+	},
+	"main": "./dist/index.js",
+	"module": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"type": "module",
+	"license": "CC BY-NC 4.0",
+	"author": "Alex Kahn",
+	"keywords": [
+		"queue",
+		"jobs",
+		"postgres",
+		"drizzle",
+		"absolutejs",
+		"bun"
+	],
+	"scripts": {
+		"build": "rm -rf dist && bun build src/index.ts --outdir dist --sourcemap --target=bun --external drizzle-orm --external postgres --external @absolutejs/queue && tsc --project tsconfig.build.json",
+		"test": "bun test",
+		"typecheck": "tsc --noEmit",
+		"format": "prettier --write \"./**/*.{ts,json,md}\"",
+		"release": "bun run format && bun run build && bun publish"
+	},
+	"peerDependencies": {
+		"drizzle-orm": ">= 0.40.0",
+		"postgres": ">= 3.4.0"
+	},
+	"devDependencies": {
+		"@absolutejs/queue": "file:../../queue",
+		"@electric-sql/pglite": "0.2.17",
+		"@types/bun": "1.2.9",
+		"drizzle-orm": "0.45.2",
+		"postgres": "3.4.9",
+		"prettier": "3.5.3",
+		"typescript": "5.8.3"
+	},
+	"exports": {
+		".": {
+			"import": "./dist/index.js",
+			"types": "./dist/index.d.ts"
+		}
+	},
+	"files": [
+		"dist",
+		"README.md"
+	]
+}
