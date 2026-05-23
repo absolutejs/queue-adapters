@@ -10,9 +10,9 @@
     },
     "postgres": {
       "name": "@absolutejs/queue-postgres",
-      "version": "0.0.2",
+      "version": "0.0.3",
       "dependencies": {
-        "@absolutejs/queue": "^0.0.2",
+        "@absolutejs/queue": "^0.0.3",
       },
       "devDependencies": {
         "@types/bun": "1.2.9",
@@ -28,7 +28,7 @@
     },
   },
   "packages": {
-    "@absolutejs/queue": ["@absolutejs/queue@0.0.2", "", { "dependencies": { "@sinclair/typebox": "^0.34.0" }, "peerDependencies": { "elysia": ">= 1.4.26" } }, "sha512-w0vaoKq629mzmhXYoR8rdrdp3+N+JuiasfWofrYredENluVoYtjswrmG+ORcf3F7pgcy1zZv1X4DXTRk0Z3UpA=="],
+    "@absolutejs/queue": ["@absolutejs/queue@0.0.3", "", { "dependencies": { "@sinclair/typebox": "^0.34.0" }, "peerDependencies": { "elysia": ">= 1.4.26" } }, "sha512-2Z2r/C1oOQ4MtEi3/j5ZCWGE6HoSMJ2ofMIztUHtzmSWwmbDDxIwV4Sz7aFQFHYSd5tJVu9C86V1b86e3ltCsw=="],
 
     "@absolutejs/queue-postgres": ["@absolutejs/queue-postgres@workspace:postgres"],
 
