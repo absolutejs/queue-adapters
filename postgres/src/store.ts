@@ -10,7 +10,7 @@ import { and, asc, desc, eq, inArray, isNotNull, lte, sql } from 'drizzle-orm';
 import type { PgDatabase } from 'drizzle-orm/pg-core';
 import { queueJobsTable, type QueueJobRow } from './schema';
 
-// Accepts any Drizzle Postgres database (postgres-js, node-postgres, pglite…).
+// Accepts any Drizzle Postgres database (postgres-js, node-postgres, …).
 type AnyPgDatabase = PgDatabase<any, any, any>;
 
 const toJob = <Jobs extends JobMap>(row: QueueJobRow): Job<Jobs> => ({

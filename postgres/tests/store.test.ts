@@ -1,16 +1,29 @@
-import { PGlite } from '@electric-sql/pglite';
-import { describe, expect, it } from 'bun:test';
+import {
+	afterAll,
+	beforeAll,
+	beforeEach,
+	describe,
+	expect,
+	it
+} from 'bun:test';
+import type { JobStore } from '@absolutejs/queue';
 import { sql } from 'drizzle-orm';
-import { drizzle } from 'drizzle-orm/pglite';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
 import { queueSchema } from '../src/schema';
 import { buildPostgresJobStore } from '../src/store';
 
+// Integration tests run against a real Postgres (the production driver, postgres.js).
+// Set QUEUE_TEST_DATABASE_URL to run them; otherwise the suite is skipped.
 type Jobs = {
 	'always.fail': { reason: string };
 	'math.add': { left: number; right: number };
 };
 
-const CREATE_TABLE = sql`
+const url = process.env.QUEUE_TEST_DATABASE_URL;
+const suite = url ? describe : describe.skip;
+
+const DDL = sql`
 	CREATE TABLE IF NOT EXISTS queue_jobs (
 		id varchar(255) PRIMARY KEY,
 		kind text NOT NULL,
@@ -28,23 +41,33 @@ const CREATE_TABLE = sql`
 	)
 `;
 
-const CREATE_IDEMPOTENCY_INDEX = sql`
+const INDEX = sql`
 	CREATE UNIQUE INDEX IF NOT EXISTS queue_jobs_idempotency_active_idx
 	ON queue_jobs (idempotency_key)
 	WHERE status IN ('pending', 'claimed')
 `;
 
-const setup = async () => {
-	const db = drizzle(new PGlite(), { schema: queueSchema });
-	await db.execute(CREATE_TABLE);
-	await db.execute(CREATE_IDEMPOTENCY_INDEX);
+suite('@absolutejs/queue-postgres', () => {
+	let client: ReturnType<typeof postgres>;
+	let store: JobStore<Jobs>;
 
-	return buildPostgresJobStore<Jobs>(db);
-};
+	beforeAll(async () => {
+		client = postgres(url as string, { prepare: false });
+		const db = drizzle(client, { schema: queueSchema });
+		await db.execute(DDL);
+		await db.execute(INDEX);
+		store = buildPostgresJobStore<Jobs>(db);
+	});
 
-describe('@absolutejs/queue-postgres', () => {
+	beforeEach(async () => {
+		await client`TRUNCATE queue_jobs`;
+	});
+
+	afterAll(async () => {
+		await client.end();
+	});
+
 	it('enqueues, claims a due job, and completes it', async () => {
-		const store = await setup();
 		const id = await store.enqueue({
 			kind: 'math.add',
 			payload: { left: 2, right: 3 }
@@ -67,7 +90,6 @@ describe('@absolutejs/queue-postgres', () => {
 	});
 
 	it('dedupes enqueue by idempotency key', async () => {
-		const store = await setup();
 		const first = await store.enqueue({
 			idempotencyKey: 'once',
 			kind: 'math.add',
@@ -83,7 +105,6 @@ describe('@absolutejs/queue-postgres', () => {
 	});
 
 	it('increments attempts on retry and dead-letters', async () => {
-		const store = await setup();
 		const id = await store.enqueue({
 			kind: 'always.fail',
 			maxAttempts: 2,
@@ -117,13 +138,12 @@ describe('@absolutejs/queue-postgres', () => {
 	});
 
 	it('reaps stuck claimed jobs back to pending', async () => {
-		const store = await setup();
 		await store.enqueue({
 			kind: 'math.add',
 			payload: { left: 1, right: 2 }
 		});
-
 		await store.claimDue({ limit: 1, now: Date.now(), workerId: 'w' });
+
 		const reaped = await store.reapStuck({
 			leaseMs: 0,
 			now: Date.now() + 1000
@@ -134,5 +154,61 @@ describe('@absolutejs/queue-postgres', () => {
 			status: 'pending'
 		});
 		expect(pending?.length).toBe(1);
+	});
+
+	it('admin: list, count, get, cancel, retry', async () => {
+		const id = await store.enqueue({
+			kind: 'math.add',
+			payload: { left: 1, right: 2 }
+		});
+
+		expect((await store.list?.())?.length).toBe(1);
+		expect((await store.get?.(id))?.id).toBe(id);
+		expect((await store.countByStatus?.())?.pending).toBe(1);
+
+		expect(await store.cancel?.(id)).toBe(true);
+		expect((await store.countByStatus?.())?.canceled).toBe(1);
+
+		expect(await store.retry?.(id)).toBe(true);
+		const counts = await store.countByStatus?.();
+		expect(counts?.pending).toBe(1);
+		expect(counts?.canceled).toBe(0);
+	});
+
+	it('claims each job exactly once across parallel workers', async () => {
+		const total = 100;
+		const claimAt = Date.now() + 1000;
+		for (let index = 0; index < total; index += 1)
+			await store.enqueue({
+				kind: 'math.add',
+				payload: { left: index, right: 0 }
+			});
+
+		const drain = async (workerId: string) => {
+			const ids: string[] = [];
+			for (;;) {
+				const batch = await store.claimDue({
+					limit: 10,
+					now: claimAt,
+					workerId
+				});
+				if (batch.length === 0) break;
+				for (const job of batch) ids.push(job.id);
+			}
+
+			return ids;
+		};
+
+		const claimed = (
+			await Promise.all([
+				drain('w1'),
+				drain('w2'),
+				drain('w3'),
+				drain('w4')
+			])
+		).flat();
+
+		expect(claimed.length).toBe(total);
+		expect(new Set(claimed).size).toBe(total);
 	});
 });
