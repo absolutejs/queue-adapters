@@ -20,11 +20,11 @@ import postgres from 'postgres';
 // Define jobs once (kind -> payload schema); pass it to both the registry and
 // the store. Types are inferred; payloads are validated.
 const jobs = defineJobs({
-	'email.recap': t.Object({ accountId: t.String() })
+	'email.send': t.Object({ to: t.String(), subject: t.String() })
 });
 const registry = createJobRegistry(jobs).on(
-	'email.recap',
-	async ({ accountId }) => {}
+	'email.send',
+	async ({ to, subject }) => {}
 );
 
 // Share your app's existing postgres.js client (one pool)…
