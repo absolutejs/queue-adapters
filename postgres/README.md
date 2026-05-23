@@ -14,15 +14,25 @@ bun add @absolutejs/queue @absolutejs/queue-postgres drizzle-orm postgres
 
 ```ts
 import { createPostgresJobStore } from '@absolutejs/queue-postgres';
-import { createJobRegistry, queue } from '@absolutejs/queue';
+import { createJobRegistry, defineJobs, queue, t } from '@absolutejs/queue';
 import postgres from 'postgres';
+
+// Define jobs once (kind -> payload schema); pass it to both the registry and
+// the store. Types are inferred; payloads are validated.
+const jobs = defineJobs({
+	'email.recap': t.Object({ accountId: t.String() })
+});
+const registry = createJobRegistry(jobs).on(
+	'email.recap',
+	async ({ accountId }) => {}
+);
 
 // Share your app's existing postgres.js client (one pool)…
 const client = postgres(process.env.DATABASE_URL, { prepare: false });
-const store = createPostgresJobStore<Jobs>({ client });
+const store = createPostgresJobStore({ client, jobs });
 
 // …or let the adapter open its own connection:
-// const store = createPostgresJobStore<Jobs>({ connectionString: url });
+// const store = createPostgresJobStore({ connectionString: url, jobs });
 
 app.use(queue({ registry, store }));
 ```

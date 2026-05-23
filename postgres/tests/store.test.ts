@@ -1,4 +1,10 @@
 import {
+	defineJobs,
+	t,
+	type JobMapFromDefinition,
+	type JobStore
+} from '@absolutejs/queue';
+import {
 	afterAll,
 	beforeAll,
 	beforeEach,
@@ -6,7 +12,6 @@ import {
 	expect,
 	it
 } from 'bun:test';
-import type { JobStore } from '@absolutejs/queue';
 import { sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
@@ -15,10 +20,11 @@ import { buildPostgresJobStore } from '../src/store';
 
 // Integration tests run against a real Postgres (the production driver, postgres.js).
 // Set QUEUE_TEST_DATABASE_URL to run them; otherwise the suite is skipped.
-type Jobs = {
-	'always.fail': { reason: string };
-	'math.add': { left: number; right: number };
-};
+const jobs = defineJobs({
+	'always.fail': t.Object({ reason: t.String() }),
+	'math.add': t.Object({ left: t.Number(), right: t.Number() })
+});
+type Jobs = JobMapFromDefinition<typeof jobs>;
 
 const url = process.env.QUEUE_TEST_DATABASE_URL;
 const suite = url ? describe : describe.skip;
@@ -56,7 +62,7 @@ suite('@absolutejs/queue-postgres', () => {
 		const db = drizzle(client, { schema: queueSchema });
 		await db.execute(DDL);
 		await db.execute(INDEX);
-		store = buildPostgresJobStore<Jobs>(db);
+		store = buildPostgresJobStore(db, jobs);
 	});
 
 	beforeEach(async () => {
@@ -102,6 +108,16 @@ suite('@absolutejs/queue-postgres', () => {
 		});
 
 		expect(second).toBe(first);
+	});
+
+	it('rejects an invalid payload at enqueue', async () => {
+		const result = store.enqueue({
+			kind: 'math.add',
+			// @ts-expect-error - missing `right`, caught at compile time and runtime
+			payload: { left: 1 }
+		});
+
+		await expect(result).rejects.toThrow();
 	});
 
 	it('increments attempts on retry and dead-letters', async () => {
