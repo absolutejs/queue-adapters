@@ -27,6 +27,9 @@
 	"scripts": {
 		"build": "rm -rf dist && bun build src/index.ts --outdir dist --sourcemap --target=bun --external drizzle-orm --external postgres --external @absolutejs/queue && tsc --project tsconfig.build.json",
 		"test": "bun test",
+		"test:pg": "QUEUE_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55444/queue_test bun test",
+		"pg:start": "sh -lc 'docker start absolutejs-queue-test-pg >/dev/null 2>&1 || docker run -d --name absolutejs-queue-test-pg -e POSTGRES_PASSWORD=postgres -e POSTGRES_USER=postgres -e POSTGRES_DB=queue_test -p 55444:5432 postgres:15 >/dev/null'",
+		"pg:stop": "sh -lc 'docker rm -f absolutejs-queue-test-pg >/dev/null 2>&1 || true'",
 		"typecheck": "tsc --noEmit",
 		"format": "prettier --write \"./**/*.{ts,json,md}\"",
 		"release": "bun run format && bun run build && bun publish"
