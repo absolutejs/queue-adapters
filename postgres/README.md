@@ -2,23 +2,30 @@
 
 Postgres storage adapter for [`@absolutejs/queue`](../queue), built on Drizzle. The
 production `JobStore`: durable, with atomic multi-worker claiming via
-`FOR UPDATE SKIP LOCKED`.
+`FOR UPDATE SKIP LOCKED`. Ships convenience factories for both `postgres.js`
+and Neon's WebSocket driver (`@neondatabase/serverless`); the underlying
+`buildPostgresJobStore` accepts any Drizzle Postgres database, so other
+drivers (e.g. `node-postgres`) work too.
 
 ## Install
 
 ```bash
+# pick your driver
 bun add @absolutejs/queue @absolutejs/queue-postgres drizzle-orm postgres
+# …or
+bun add @absolutejs/queue @absolutejs/queue-postgres drizzle-orm @neondatabase/serverless
 ```
 
-## Usage
+`postgres` and `@neondatabase/serverless` are **optional** peer deps —
+install whichever one you'll use.
+
+## Usage with `postgres.js`
 
 ```ts
 import { createPostgresJobStore } from '@absolutejs/queue-postgres';
 import { createJobRegistry, defineJobs, queue, t } from '@absolutejs/queue';
 import postgres from 'postgres';
 
-// Define jobs once (kind -> payload schema); pass it to both the registry and
-// the store. Types are inferred; payloads are validated.
 const jobs = defineJobs({
 	'email.send': t.Object({ to: t.String(), subject: t.String() })
 });
@@ -35,6 +42,51 @@ const store = createPostgresJobStore({ client, jobs });
 // const store = createPostgresJobStore({ connectionString: url, jobs });
 
 app.use(queue({ registry, store }));
+```
+
+## Usage with Neon (`@neondatabase/serverless`)
+
+`createNeonJobStore` mirrors `createPostgresJobStore` but uses Neon's
+WebSocket Pool. **Important**: the queue's `claimDue` opens a transaction
+and selects with `FOR UPDATE SKIP LOCKED`. Neon's HTTP driver
+(`drizzle-orm/neon-http`) is single-statement and can't do row-level
+locks — use the WebSocket Pool driver here. Your app's other code can
+keep using the HTTP driver; they're independent.
+
+```ts
+import { createNeonJobStore, neonConfig } from '@absolutejs/queue-postgres';
+import { createJobRegistry, defineJobs, queue, t } from '@absolutejs/queue';
+import { Pool } from '@neondatabase/serverless';
+
+// Bun ships a global WebSocket; for node, polyfill once:
+//   import ws from 'ws'; neonConfig.webSocketConstructor = ws;
+
+const jobs = defineJobs({
+	'email.send': t.Object({ to: t.String(), subject: t.String() })
+});
+
+// Share an existing Neon Pool…
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const store = createNeonJobStore({ jobs, pool });
+
+// …or let the adapter open its own:
+// const store = createNeonJobStore({ connectionString: url, jobs });
+```
+
+## Usage with any other Drizzle Postgres adapter
+
+Both factories are thin wrappers around `buildPostgresJobStore(db, jobs)`,
+which accepts any `PgDatabase<any, any, any>` from Drizzle. If you use
+`drizzle-orm/node-postgres`, build the `db` yourself and pass it in:
+
+```ts
+import { buildPostgresJobStore, queueSchema } from '@absolutejs/queue-postgres';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const db = drizzle(pool, { schema: queueSchema });
+const store = buildPostgresJobStore(db, jobs);
 ```
 
 ### Migrations

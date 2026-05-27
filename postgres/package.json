@@ -1,7 +1,7 @@
 {
 	"name": "@absolutejs/queue-postgres",
-	"version": "0.0.3",
-	"description": "Postgres (Drizzle) storage adapter for @absolutejs/queue",
+	"version": "0.0.4",
+	"description": "Postgres (Drizzle) storage adapter for @absolutejs/queue — postgres.js + Neon serverless",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/absolutejs/queue-adapters.git",
@@ -20,12 +20,13 @@
 		"queue",
 		"jobs",
 		"postgres",
+		"neon",
 		"drizzle",
 		"absolutejs",
 		"bun"
 	],
 	"scripts": {
-		"build": "rm -rf dist && bun build src/index.ts --outdir dist --sourcemap --target=bun --external drizzle-orm --external postgres --external @absolutejs/queue && tsc --project tsconfig.build.json",
+		"build": "rm -rf dist && bun build src/index.ts --outdir dist --sourcemap --target=bun --external drizzle-orm --external postgres --external @neondatabase/serverless --external @absolutejs/queue && tsc --project tsconfig.build.json",
 		"test": "bun test",
 		"test:pg": "QUEUE_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55444/queue_test bun test",
 		"pg:start": "sh -lc 'docker start absolutejs-queue-test-pg >/dev/null 2>&1 || docker run -d --name absolutejs-queue-test-pg -e POSTGRES_PASSWORD=postgres -e POSTGRES_USER=postgres -e POSTGRES_DB=queue_test -p 55444:5432 postgres:15 >/dev/null'",
@@ -35,13 +36,23 @@
 		"release": "bun run format && bun run build && bun publish"
 	},
 	"dependencies": {
-		"@absolutejs/queue": "^0.0.3"
+		"@absolutejs/queue": "^0.0.4"
 	},
 	"peerDependencies": {
+		"@neondatabase/serverless": ">= 0.10.0",
 		"drizzle-orm": ">= 0.40.0",
 		"postgres": ">= 3.4.0"
 	},
+	"peerDependenciesMeta": {
+		"@neondatabase/serverless": {
+			"optional": true
+		},
+		"postgres": {
+			"optional": true
+		}
+	},
 	"devDependencies": {
+		"@neondatabase/serverless": "^0.10.0",
 		"@types/bun": "1.2.9",
 		"drizzle-orm": "0.45.2",
 		"postgres": "3.4.9",
