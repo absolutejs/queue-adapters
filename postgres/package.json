@@ -1,6 +1,6 @@
 {
 	"name": "@absolutejs/queue-postgres",
-	"version": "0.0.4",
+	"version": "0.0.5",
 	"description": "Postgres (Drizzle) storage adapter for @absolutejs/queue — postgres.js + Neon serverless",
 	"repository": {
 		"type": "git",
@@ -26,7 +26,7 @@
 		"bun"
 	],
 	"scripts": {
-		"build": "rm -rf dist && bun build src/index.ts --outdir dist --sourcemap --target=bun --external drizzle-orm --external postgres --external @neondatabase/serverless --external @absolutejs/queue && tsc --project tsconfig.build.json",
+		"build": "rm -rf dist && bun build src/index.ts src/postgresJobStore.ts src/neonJobStore.ts --outdir dist --sourcemap --target=bun --external drizzle-orm --external postgres --external @neondatabase/serverless --external @absolutejs/queue && tsc --project tsconfig.build.json",
 		"test": "bun test",
 		"test:pg": "QUEUE_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55444/queue_test bun test",
 		"pg:start": "sh -lc 'docker start absolutejs-queue-test-pg >/dev/null 2>&1 || docker run -d --name absolutejs-queue-test-pg -e POSTGRES_PASSWORD=postgres -e POSTGRES_USER=postgres -e POSTGRES_DB=queue_test -p 55444:5432 postgres:15 >/dev/null'",
@@ -64,6 +64,16 @@
 			"types": "./dist/index.d.ts",
 			"import": "./dist/index.js",
 			"default": "./dist/index.js"
+		},
+		"./postgres": {
+			"types": "./dist/postgresJobStore.d.ts",
+			"import": "./dist/postgresJobStore.js",
+			"default": "./dist/postgresJobStore.js"
+		},
+		"./neon": {
+			"types": "./dist/neonJobStore.d.ts",
+			"import": "./dist/neonJobStore.js",
+			"default": "./dist/neonJobStore.js"
 		}
 	},
 	"files": [

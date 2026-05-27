@@ -22,7 +22,7 @@ install whichever one you'll use.
 ## Usage with `postgres.js`
 
 ```ts
-import { createPostgresJobStore } from '@absolutejs/queue-postgres';
+import { createPostgresJobStore } from '@absolutejs/queue-postgres/postgres';
 import { createJobRegistry, defineJobs, queue, t } from '@absolutejs/queue';
 import postgres from 'postgres';
 
@@ -54,7 +54,10 @@ locks — use the WebSocket Pool driver here. Your app's other code can
 keep using the HTTP driver; they're independent.
 
 ```ts
-import { createNeonJobStore, neonConfig } from '@absolutejs/queue-postgres';
+import {
+	createNeonJobStore,
+	neonConfig
+} from '@absolutejs/queue-postgres/neon';
 import { createJobRegistry, defineJobs, queue, t } from '@absolutejs/queue';
 import { Pool } from '@neondatabase/serverless';
 
