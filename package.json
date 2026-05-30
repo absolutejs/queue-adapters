@@ -2,9 +2,10 @@
 	"name": "@absolutejs/queue-adapters",
 	"private": true,
 	"type": "module",
-	"description": "Storage adapters for @absolutejs/queue (Postgres, and more to come)",
+	"description": "Storage adapters for @absolutejs/queue (Postgres, Redis, and more to come)",
 	"workspaces": [
-		"postgres"
+		"postgres",
+		"redis"
 	],
 	"scripts": {
 		"build": "bun run --filter './*' build",
