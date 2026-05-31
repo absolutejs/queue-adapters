@@ -5,6 +5,8 @@ Redis-backed `JobStore` for
 [`@absolutejs/queue-postgres`](../postgres) — same `JobStore`
 contract, different transport.
 
+**Docs:** [absolutejs.com/documentation/queue-overview#redis-adapter](https://absolutejs.com/documentation/queue-overview#redis-adapter)
+
 ## When to use Redis vs Postgres
 
 | Concern | `queue-redis` | `queue-postgres` |
