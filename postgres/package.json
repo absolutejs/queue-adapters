@@ -1,6 +1,6 @@
 {
 	"name": "@absolutejs/queue-postgres",
-	"version": "0.0.7",
+	"version": "0.1.0",
 	"description": "Postgres (Drizzle) storage adapter for @absolutejs/queue — postgres.js + Neon serverless",
 	"repository": {
 		"type": "git",
@@ -42,7 +42,7 @@
 	"peerDependencies": {
 		"@absolutejs/queue": ">= 0.1.0",
 		"@neondatabase/serverless": ">= 0.10.0",
-		"drizzle-orm": ">= 0.40.0",
+		"drizzle-orm": ">=1.0.0-rc.1",
 		"postgres": ">= 3.4.0"
 	},
 	"peerDependenciesMeta": {
@@ -57,7 +57,7 @@
 		"@absolutejs/queue": "^0.1.0",
 		"@neondatabase/serverless": "^0.10.0",
 		"@types/bun": "1.2.9",
-		"drizzle-orm": "0.45.2",
+		"drizzle-orm": "1.0.0-rc.3",
 		"postgres": "3.4.9",
 		"prettier": "3.5.3",
 		"typescript": "5.8.3"

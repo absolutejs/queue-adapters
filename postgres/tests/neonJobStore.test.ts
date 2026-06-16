@@ -11,7 +11,6 @@ import { Pool, neonConfig } from '@neondatabase/serverless';
 import { sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import { createNeonJobStore } from '../src/neonJobStore';
-import { queueSchema } from '../src/schema';
 
 // Integration tests against Neon over WebSocket. Set QUEUE_TEST_NEON_URL to a
 // Neon branch URL to run them; otherwise the suite is skipped. Use a
@@ -58,7 +57,7 @@ suite('createNeonJobStore (Neon serverless WebSocket)', () => {
 			neonConfig.webSocketConstructor = WebSocket;
 		}
 		pool = new Pool({ connectionString: url as string });
-		const db = drizzle(pool, { schema: queueSchema });
+		const db = drizzle({ client: pool });
 		await db.execute(DDL);
 		await db.execute(INDEX);
 		store = createNeonJobStore({ jobs, pool });

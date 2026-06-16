@@ -15,7 +15,6 @@ import {
 import { sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
-import { queueSchema } from '../src/schema';
 import { buildPostgresJobStore } from '../src/store';
 
 // Integration tests run against a real Postgres (the production driver, postgres.js).
@@ -59,7 +58,7 @@ suite('@absolutejs/queue-postgres', () => {
 
 	beforeAll(async () => {
 		client = postgres(url as string, { prepare: false });
-		const db = drizzle(client, { schema: queueSchema });
+		const db = drizzle({ client });
 		await db.execute(DDL);
 		await db.execute(INDEX);
 		store = buildPostgresJobStore(db, jobs);

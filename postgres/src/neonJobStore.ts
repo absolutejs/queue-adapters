@@ -22,7 +22,6 @@ import type {
 } from '@absolutejs/queue';
 import { Pool, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
-import { queueSchema } from './schema';
 import { buildPostgresJobStore } from './store';
 
 // Re-export so consumers don't need to depend on @neondatabase/serverless
@@ -43,7 +42,7 @@ export const createNeonJobStore = <const Def extends JobDefinition>(
 		'pool' in options
 			? options.pool
 			: new Pool({ connectionString: options.connectionString });
-	const db = drizzle(pool, { schema: queueSchema });
+	const db = drizzle({ client: pool });
 
 	return buildPostgresJobStore(db, options.jobs);
 };

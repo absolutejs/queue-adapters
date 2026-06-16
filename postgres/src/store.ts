@@ -14,11 +14,12 @@ import type {
 	JobStore
 } from '@absolutejs/queue';
 import { and, asc, desc, eq, inArray, isNotNull, lte, sql } from 'drizzle-orm';
-import type { PgDatabase } from 'drizzle-orm/pg-core';
+import type { PgAsyncDatabase } from 'drizzle-orm/pg-core';
 import { queueJobsTable, type QueueJobRow } from './schema';
 
 // Accepts any Drizzle Postgres database (postgres-js, node-postgres, …).
-type AnyPgDatabase = PgDatabase<any, any, any>;
+// drizzle 1.0: the base async db class is PgAsyncDatabase (was PgDatabase<…>).
+type AnyPgDatabase = PgAsyncDatabase<any, any>;
 
 const toJob = <Jobs extends JobMap>(row: QueueJobRow): Job<Jobs> => ({
 	attempts: row.attempts,
@@ -36,8 +37,11 @@ const toJob = <Jobs extends JobMap>(row: QueueJobRow): Job<Jobs> => ({
 	updatedAt: row.updatedAt
 });
 
-export const buildPostgresJobStore = <const Def extends JobDefinition>(
-	db: AnyPgDatabase,
+export const buildPostgresJobStore = <
+	const Def extends JobDefinition,
+	DB extends AnyPgDatabase
+>(
+	db: DB,
 	definition: Def
 ): JobStore<JobMapFromDefinition<Def>> => {
 	type Jobs = JobMapFromDefinition<Def>;

@@ -5,7 +5,6 @@ import type {
 } from '@absolutejs/queue';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
-import { queueSchema } from './schema';
 import { buildPostgresJobStore } from './store';
 
 type PostgresClient = ReturnType<typeof postgres>;
@@ -24,7 +23,7 @@ export const createPostgresJobStore = <const Def extends JobDefinition>(
 		'client' in options
 			? options.client
 			: postgres(options.connectionString, { prepare: false });
-	const db = drizzle(client, { schema: queueSchema });
+	const db = drizzle({ client });
 
 	return buildPostgresJobStore(db, options.jobs);
 };
