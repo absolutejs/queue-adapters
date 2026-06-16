@@ -7,6 +7,10 @@
 		"url": "https://github.com/absolutejs/queue-adapters.git",
 		"directory": "redis"
 	},
+	"homepage": "https://github.com/absolutejs/queue-adapters/tree/main/redis",
+	"bugs": {
+		"url": "https://github.com/absolutejs/queue-adapters/issues"
+	},
 	"main": "./dist/index.js",
 	"module": "./dist/index.js",
 	"types": "./dist/index.d.ts",
