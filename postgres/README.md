@@ -119,4 +119,4 @@ Crashed workers are recovered by `reapStuck` (lease expiry → back to `pending`
 
 ## License
 
-CC BY-NC 4.0
+Apache-2.0 — see [LICENSE](./LICENSE).
