@@ -1,6 +1,6 @@
 {
 	"name": "@absolutejs/queue-postgres",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "Postgres (Drizzle) storage adapter for @absolutejs/queue — postgres.js + Neon serverless",
 	"repository": {
 		"type": "git",

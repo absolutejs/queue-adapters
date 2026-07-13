@@ -1,6 +1,6 @@
 {
 	"name": "@absolutejs/queue-redis",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"description": "Redis-backed JobStore for @absolutejs/queue. Atomic Lua claim, sorted-set scheduling by runAt, per-job hash records. For shops running Redis instead of (or alongside) Postgres.",
 	"repository": {
 		"type": "git",
