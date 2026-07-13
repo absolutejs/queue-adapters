@@ -8,7 +8,7 @@ on `@absolutejs/queue`; install only the one for your backend.
 | --- | --- | --- | --- |
 | `postgres/` | `@absolutejs/queue-postgres` | Postgres (Drizzle, `FOR UPDATE SKIP LOCKED`) | ✅ |
 | `sqlite/` | `@absolutejs/queue-sqlite` | SQLite | planned |
-| `redis/` | `@absolutejs/queue-redis` | Redis | planned |
+| `redis/` | `@absolutejs/queue-redis` | Redis | ✅ |
 
 ## Why a monorepo
 
@@ -32,4 +32,4 @@ bun run build        # across all adapters
 
 ## License
 
-CC BY-NC 4.0
+Apache License 2.0 — each published subpackage ships its own LICENSE.

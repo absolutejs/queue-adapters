@@ -33,7 +33,13 @@ bun add redis        # node-redis v4+
 
 ```ts
 import { Redis } from 'ioredis';
-import { createQueueWorker, createJobRegistry, defineJobs } from '@absolutejs/queue';
+import {
+  createJobRegistry,
+  createQueueWorker,
+  defineJobs,
+  t,
+  type JobMapFromDefinition
+} from '@absolutejs/queue';
 import { createRedisJobStore } from '@absolutejs/queue-redis';
 
 const redis = new Redis(process.env.REDIS_URL!);
@@ -42,7 +48,7 @@ const jobs = defineJobs({
   'email.send': t.Object({ to: t.String(), subject: t.String() }),
 });
 
-const store = createRedisJobStore<typeof jobs._inferred>({
+const store = createRedisJobStore<JobMapFromDefinition<typeof jobs>>({
   client: redis,                    // ioredis structurally satisfies RedisCommandClient
   keyPrefix: 'myapp:queue:',         // optional
 });

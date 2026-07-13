@@ -1,6 +1,7 @@
 {
 	"name": "@absolutejs/queue-adapters",
 	"private": true,
+	"license": "Apache-2.0",
 	"type": "module",
 	"description": "Storage adapters for @absolutejs/queue (Postgres, Redis, and more to come)",
 	"workspaces": [
