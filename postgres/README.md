@@ -5,7 +5,8 @@ production `JobStore`: durable, with atomic multi-worker claiming via
 `FOR UPDATE SKIP LOCKED`. Ships convenience factories for both `postgres.js`
 and Neon's WebSocket driver (`@neondatabase/serverless`); the underlying
 `buildPostgresJobStore` accepts any Drizzle Postgres database, so other
-drivers (e.g. `node-postgres`) work too.
+drivers (including Bun SQL and `node-postgres`) work too. Its portable JSONB
+encoding preserves payload objects across all supported drivers.
 
 ## Install
 

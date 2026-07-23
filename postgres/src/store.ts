@@ -146,7 +146,7 @@ export const buildPostgresJobStore = <
 				idempotencyKey: input.idempotencyKey ?? null,
 				kind: input.kind as string,
 				maxAttempts: input.maxAttempts ?? DEFAULT_MAX_ATTEMPTS,
-				payload: input.payload,
+				payload: sql<unknown>`${JSON.stringify(input.payload)}::text::jsonb`,
 				runAt: input.runAt ?? now,
 				status: 'pending' as const,
 				updatedAt: now

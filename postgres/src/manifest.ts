@@ -11,7 +11,7 @@ export const manifest = defineManifest<Record<never, never>>()({
 		accent: '#336791',
 		category: 'infrastructure',
 		description:
-			'Postgres `JobStore` for `@absolutejs/queue`, built on Drizzle. Atomic multi-worker claiming via `FOR UPDATE SKIP LOCKED`, crashed-worker recovery through lease reaping, and convenience factories for postgres.js and Neon’s WebSocket driver — or bring any Drizzle Postgres database.',
+			'Postgres `JobStore` for `@absolutejs/queue`, built on Drizzle. Atomic multi-worker claiming via `FOR UPDATE SKIP LOCKED`, crashed-worker recovery through lease reaping, portable JSONB across Bun SQL, postgres.js and Neon, and convenience factories for driver-owned pools — or bring any Drizzle Postgres database.',
 		docsUrl:
 			'https://github.com/absolutejs/queue-adapters/tree/main/postgres',
 		name: '@absolutejs/queue-postgres',

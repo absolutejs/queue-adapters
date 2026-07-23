@@ -112,8 +112,8 @@ suite('@absolutejs/queue-postgres', () => {
 	it('rejects an invalid payload at enqueue', async () => {
 		const result = store.enqueue({
 			kind: 'math.add',
-			// @ts-expect-error - missing `right`, caught at compile time and runtime
-			payload: { left: 1 }
+			// JSON is an intentionally untrusted runtime boundary.
+			payload: JSON.parse('{"left":1}')
 		});
 
 		await expect(result).rejects.toThrow();
