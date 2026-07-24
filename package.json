@@ -1,22 +1,23 @@
 {
-	"name": "@absolutejs/queue-adapters",
-	"private": true,
-	"license": "Apache-2.0",
-	"type": "module",
-	"description": "Storage adapters for @absolutejs/queue (Postgres, Redis, and more to come)",
-	"workspaces": [
-		"postgres",
-		"redis"
-	],
-	"scripts": {
-		"build": "bun run --filter './*' build",
-		"config": "absolute config",
-		"test": "bun run --filter './*' test",
-		"typecheck": "bun run --filter './*' typecheck",
-		"format": "prettier --write \"./*/src/**/*.{ts,json,md}\" \"./*/tests/**/*.ts\""
-	},
-	"devDependencies": {
-		"@absolutejs/absolute": "^0.19.0-beta.1051",
-		"prettier": "3.5.3"
-	}
+  "name": "@absolutejs/queue-adapters",
+  "private": true,
+  "license": "Apache-2.0",
+  "type": "module",
+  "description": "Storage adapters for @absolutejs/queue (Postgres, Redis, and more to come)",
+  "workspaces": [
+    "postgres",
+    "redis"
+  ],
+  "scripts": {
+    "build": "bun run --filter './*' build",
+    "config": "absolute config",
+    "test": "bun run --filter './*' test",
+    "typecheck": "bun run --filter './*' typecheck",
+    "format": "prettier --write \"./*/src/**/*.{ts,json,md}\" \"./*/tests/**/*.ts\""
+  },
+  "devDependencies": {
+    "@absolutejs/absolute": "^0.19.0-beta.1051",
+    "elysia": "1.4.29",
+    "prettier": "3.5.3"
+  }
 }

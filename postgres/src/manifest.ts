@@ -6,7 +6,7 @@ import { Type } from '@sinclair/typebox';
  * by @absolutejs/queue's default wiring recipe, which these snippets
  * reference by name. */
 export const manifest = defineManifest<Record<never, never>>()({
-	contract: 1,
+	contract: 2,
 	identity: {
 		accent: '#336791',
 		category: 'infrastructure',
