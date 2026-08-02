@@ -156,5 +156,5 @@ this.
 
 ## License
 
-[Apache 2.0](../LICENSE). Tier B substrate-adjacent — rides
+Apache 2.0. Tier B substrate-adjacent — rides
 `@absolutejs/queue` (BSL Tier A).

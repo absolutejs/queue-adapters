@@ -1,6 +1,6 @@
 # @absolutejs/queue-postgres
 
-Postgres storage adapter for [`@absolutejs/queue`](../queue), built on Drizzle. The
+Postgres storage adapter for [`@absolutejs/queue`](https://www.npmjs.com/package/@absolutejs/queue), built on Drizzle. The
 production `JobStore`: durable, with atomic multi-worker claiming via
 `FOR UPDATE SKIP LOCKED`. Ships convenience factories for both `postgres.js`
 and Neon's WebSocket driver (`@neondatabase/serverless`); the underlying
