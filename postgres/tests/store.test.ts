@@ -73,6 +73,55 @@ suite('@absolutejs/queue-postgres', () => {
 		await client.end();
 	});
 
+	it('filters supported kinds before the claim limit and leaves foreign jobs untouched', async () => {
+		const newer = await store.enqueue({
+			kind: 'always.fail',
+			payload: { reason: 'owned by newer worker' },
+			runAt: 1
+		});
+		const older = await store.enqueue({
+			kind: 'math.add',
+			payload: { left: 2, right: 3 },
+			runAt: 2
+		});
+		const claimed = await store.claimDue({
+			kinds: ['math.add'],
+			limit: 1,
+			now: Date.now(),
+			workerId: 'older-worker'
+		});
+		expect(claimed.map((job) => job.id)).toEqual([older]);
+		expect((await store.get?.(newer))?.status).toBe('pending');
+		expect((await store.get?.(newer))?.attempts).toBe(0);
+		expect(
+			await store.claimDue({
+				kinds: [],
+				limit: 1,
+				now: Date.now(),
+				workerId: 'no-handlers'
+			})
+		).toEqual([]);
+		const narrow = buildPostgresJobStore(
+			drizzle({ client }),
+			defineJobs({ 'math.add': jobs['math.add'] })
+		);
+		expect(
+			await narrow.claimDue({
+				limit: 1,
+				now: Date.now(),
+				workerId: 'narrow-definition'
+			})
+		).toEqual([]);
+		expect((await store.get?.(newer))?.status).toBe('pending');
+		const upgraded = await store.claimDue({
+			kinds: ['always.fail'],
+			limit: 1,
+			now: Date.now(),
+			workerId: 'upgraded-worker'
+		});
+		expect(upgraded.map((job) => job.id)).toEqual([newer]);
+	});
+
 	it('enqueues, claims a due job, and completes it', async () => {
 		const id = await store.enqueue({
 			kind: 'math.add',

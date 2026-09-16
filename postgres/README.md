@@ -143,3 +143,11 @@ handlers must separately fence application writes and external side effects.
 
 Lease expiry consumes one attempt. Reaping moves an exhausted job to `dead`
 with a lease-expiry error, so repeated worker death cannot bypass `maxAttempts`.
+
+### Mixed worker versions
+
+With queue 0.8.4, enable `requireKindFiltering: true` on workers. Claims are
+restricted to both the adapter's job definition and the worker's registered
+handlers before the database applies its claim limit. Empty handler sets claim
+nothing. Upgrade every worker attached to a shared table before producing new
+job kinds; an older, unfiltered worker can still claim and reject those jobs.
