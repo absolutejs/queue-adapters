@@ -38,6 +38,7 @@ const DDL = sql`
 		attempts integer NOT NULL DEFAULT 0,
 		max_attempts integer NOT NULL,
 		idempotency_key text,
+		claim_token text,
 		locked_at bigint,
 		locked_by text,
 		last_error text,
@@ -225,5 +226,99 @@ suite('@absolutejs/queue-postgres', () => {
 
 		expect(claimed.length).toBe(total);
 		expect(new Set(claimed).size).toBe(total);
+	});
+	it('rejects stale completions and failures after reclaim with the same worker and clock', async () => {
+		const id = await store.enqueue({
+			kind: 'math.add',
+			payload: { left: 1, right: 2 },
+			runAt: 1
+		});
+		const [first] = await store.claimDue({
+			limit: 1,
+			now: 10,
+			workerId: 'same-worker'
+		});
+		await store.reapStuck({ now: 10, leaseMs: 0 });
+		const [second] = await store.claimDue({
+			limit: 1,
+			now: 10,
+			workerId: 'same-worker'
+		});
+		expect(first!.claimToken).toBeDefined();
+		expect(second!.claimToken).not.toBe(first!.claimToken);
+		expect(
+			await store.failClaim!(id, first!.claimToken!, {
+				dead: true,
+				error: 'stale'
+			})
+		).toBe(false);
+		const [stale, current] = await Promise.all([
+			store.completeClaim!(id, first!.claimToken!),
+			store.completeClaim!(id, second!.claimToken!)
+		]);
+		expect(stale).toBe(false);
+		expect(current).toBe(true);
+		expect(
+			await store.failClaim!(id, second!.claimToken!, {
+				error: 'late failure'
+			})
+		).toBe(false);
+		const done = await store.get!(id);
+		expect(done!.status).toBe('done');
+		expect(done!.attempts).toBe(1);
+	});
+
+	it('only the current claim can schedule a retry, and cancellation rejects its late result', async () => {
+		const id = await store.enqueue({
+			kind: 'math.add',
+			payload: { left: 1, right: 2 },
+			runAt: 1
+		});
+		const [first] = await store.claimDue({
+			limit: 1,
+			now: 10,
+			workerId: 'worker'
+		});
+		expect(
+			await store.failClaim!(id, first!.claimToken!, {
+				retryAt: 11,
+				error: 'retryable'
+			})
+		).toBe(true);
+		const [second] = await store.claimDue({
+			limit: 1,
+			now: 11,
+			workerId: 'worker'
+		});
+		expect(
+			await store.failClaim!(id, first!.claimToken!, {
+				dead: true,
+				error: 'late'
+			})
+		).toBe(false);
+		expect((await store.get!(id))!.attempts).toBe(1);
+		await store.cancel!(id);
+		expect(await store.completeClaim!(id, second!.claimToken!)).toBe(false);
+		expect((await store.get!(id))!.status).toBe('canceled');
+	});
+	it('dead-letters a crashed job when its retry budget is exhausted', async () => {
+		const id = await store.enqueue({
+			kind: 'math.add',
+			payload: { left: 1, right: 2 },
+			runAt: 1,
+			maxAttempts: 1
+		});
+		const [claim] = await store.claimDue({
+			now: 10,
+			limit: 1,
+			workerId: 'crashed'
+		});
+		await store.reapStuck({ now: 11, leaseMs: 1 });
+		expect((await store.get!(id))!.status).toBe('dead');
+		expect((await store.get!(id))!.attempts).toBe(1);
+		expect(
+			await store.claimDue({ now: 12, limit: 1, workerId: 'replacement' })
+		).toEqual([]);
+		expect(await store.completeClaim!(id, claim!.claimToken!)).toBe(false);
 	});
 });

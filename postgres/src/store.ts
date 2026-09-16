@@ -22,6 +22,7 @@ import { queueJobsTable, type QueueJobRow } from './schema';
 type AnyPgDatabase = PgAsyncDatabase<any, any>;
 
 const toJob = <Jobs extends JobMap>(row: QueueJobRow): Job<Jobs> => ({
+	claimToken: row.claimToken ?? undefined,
 	attempts: row.attempts,
 	createdAt: row.createdAt,
 	id: row.id as JobId,
@@ -85,26 +86,62 @@ export const buildPostgresJobStore = <
 				if (due.length === 0) return [];
 
 				const ids = due.map((row) => row.id);
-				await tx
+				const claimed = await tx
 					.update(queueJobsTable)
 					.set({
+						claimToken: sql`gen_random_uuid()::text`,
 						lockedAt: now,
 						lockedBy: workerId,
 						status: 'claimed',
 						updatedAt: now
 					})
-					.where(inArray(queueJobsTable.id, ids));
-
-				return due.map((row) =>
-					toJob<Jobs>({
-						...row,
-						lockedAt: now,
-						lockedBy: workerId,
-						status: 'claimed',
-						updatedAt: now
-					})
-				);
+					.where(inArray(queueJobsTable.id, ids))
+					.returning();
+				return claimed.map((row) => toJob<Jobs>(row));
 			}),
+		completeClaim: async (id, claimToken) => {
+			const updated = await db
+				.update(queueJobsTable)
+				.set({
+					claimToken: null,
+					lockedAt: null,
+					lockedBy: null,
+					status: 'done',
+					updatedAt: Date.now()
+				})
+				.where(
+					and(
+						eq(queueJobsTable.id, id),
+						eq(queueJobsTable.status, 'claimed'),
+						eq(queueJobsTable.claimToken, claimToken)
+					)
+				)
+				.returning({ id: queueJobsTable.id });
+			return updated.length > 0;
+		},
+		failClaim: async (id, claimToken, { dead, error, retryAt }) => {
+			const updated = await db
+				.update(queueJobsTable)
+				.set({
+					attempts: sql`${queueJobsTable.attempts} + 1`,
+					lastError: error,
+					claimToken: null,
+					lockedAt: null,
+					lockedBy: null,
+					status: dead ? 'dead' : 'pending',
+					updatedAt: Date.now(),
+					...(retryAt === undefined ? {} : { runAt: retryAt })
+				})
+				.where(
+					and(
+						eq(queueJobsTable.id, id),
+						eq(queueJobsTable.status, 'claimed'),
+						eq(queueJobsTable.claimToken, claimToken)
+					)
+				)
+				.returning({ id: queueJobsTable.id });
+			return updated.length > 0;
+		},
 		complete: async (id) => {
 			await db
 				.update(queueJobsTable)
@@ -249,9 +286,12 @@ export const buildPostgresJobStore = <
 			const reaped = await db
 				.update(queueJobsTable)
 				.set({
+					claimToken: null,
+					attempts: sql`${queueJobsTable.attempts} + 1`,
+					lastError: 'Worker lease expired before completion.',
 					lockedAt: null,
 					lockedBy: null,
-					status: 'pending',
+					status: sql`case when ${queueJobsTable.attempts} + 1 >= ${queueJobsTable.maxAttempts} then 'dead' else 'pending' end`,
 					updatedAt: now
 				})
 				.where(

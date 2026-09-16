@@ -22,6 +22,7 @@ export const queueJobsTable = pgTable(
 		attempts: integer('attempts').notNull().default(0),
 		maxAttempts: integer('max_attempts').notNull(),
 		idempotencyKey: text('idempotency_key'),
+		claimToken: text('claim_token'),
 		lockedAt: bigint('locked_at', { mode: 'number' }),
 		lockedBy: text('locked_by'),
 		lastError: text('last_error'),

@@ -121,3 +121,25 @@ Crashed workers are recovered by `reapStuck` (lease expiry → back to `pending`
 ## License
 
 Apache-2.0 — see [LICENSE](./LICENSE).
+
+## Atomic claim fencing
+
+The adapter now assigns `claim_token` with each claim and implements
+`completeClaim` / `failClaim` as conditional updates on job ID, token and
+`status = 'claimed'`. An expired, canceled or superseded attempt returns `false`
+without changing the current job. Updated queue workers use this capability
+automatically; `requireClaimFencing: true` refuses an incompatible store.
+
+Apply this additive migration **before** starting the updated adapter (or generate
+it from the exported `queueJobsTable` with your application's migration tool):
+
+```sql
+ALTER TABLE queue_jobs ADD COLUMN IF NOT EXISTS claim_token text;
+```
+
+Drain older workers during rollout. Older binaries still perform unfenced
+updates and cannot provide this guarantee. Claim fencing protects the queue row;
+handlers must separately fence application writes and external side effects.
+
+Lease expiry consumes one attempt. Reaping moves an exhausted job to `dead`
+with a lease-expiry error, so repeated worker death cannot bypass `maxAttempts`.

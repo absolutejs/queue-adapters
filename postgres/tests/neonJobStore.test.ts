@@ -32,6 +32,7 @@ const DDL = sql`
 		attempts integer NOT NULL DEFAULT 0,
 		max_attempts integer NOT NULL,
 		idempotency_key text,
+		claim_token text,
 		locked_at bigint,
 		locked_by text,
 		last_error text,
