@@ -84,7 +84,7 @@ which accepts any `PgDatabase<any, any, any>` from Drizzle. If you use
 `drizzle-orm/node-postgres`, build the `db` yourself and pass it in:
 
 ```ts
-import { buildPostgresJobStore, queueSchema } from '@absolutejs/queue-postgres';
+import { buildPostgresJobStore, queueSchema } from '@absolutejs/queue-postgres/drizzle';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 
@@ -98,7 +98,7 @@ const store = buildPostgresJobStore(db, jobs);
 Add the table to your Drizzle schema so it's included in migrations:
 
 ```ts
-export { queueJobsTable } from '@absolutejs/queue-postgres';
+export { queueJobsTable } from '@absolutejs/queue-postgres/drizzle';
 ```
 
 Then `drizzle-kit generate` / `push` as usual.
@@ -143,3 +143,5 @@ handlers must separately fence application writes and external side effects.
 
 Lease expiry consumes one attempt. Reaping moves an exhausted job to `dead`
 with a lease-expiry error, so repeated worker death cannot bypass `maxAttempts`.
+
+The `/drizzle` entry point (0.1.7+) does not load the optional `postgres` or Neon connection factories. Use it with Bun SQL or an existing Drizzle connection, including schema generation. Existing root exports remain compatible.

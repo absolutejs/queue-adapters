@@ -1,3 +1,7 @@
+## 0.1.7
+
+- Add a driver-neutral `/drizzle` entry point for stores and schema exports without loading optional connection drivers.
+
 # Changelog
 
 ## 0.1.6 — 2026-09-16

@@ -1,7 +1,7 @@
 {
 	"name": "@absolutejs/queue-postgres",
-	"version": "0.1.6",
-	"description": "Postgres (Drizzle) storage adapter for @absolutejs/queue — postgres.js + Neon serverless",
+	"version": "0.1.7",
+	"description": "Postgres (Drizzle) storage adapter for @absolutejs/queue \u2014 postgres.js + Neon serverless",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/absolutejs/queue-adapters.git",
@@ -30,7 +30,7 @@
 		"bun"
 	],
 	"scripts": {
-		"build": "rm -rf dist && bun build src/index.ts src/postgresJobStore.ts src/neonJobStore.ts src/manifest.ts --outdir dist --sourcemap --target=bun --external drizzle-orm --external postgres --external @neondatabase/serverless --external @absolutejs/queue && tsc --project tsconfig.build.json && absolute-manifest emit",
+		"build": "rm -rf dist && bun build src/index.ts src/drizzle.ts src/postgresJobStore.ts src/neonJobStore.ts src/manifest.ts --outdir dist --sourcemap --target=bun --external drizzle-orm --external postgres --external @neondatabase/serverless --external @absolutejs/queue && tsc --project tsconfig.build.json && absolute-manifest emit",
 		"test": "bun test",
 		"test:pg": "QUEUE_TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:55444/queue_test bun test",
 		"pg:start": "sh -lc 'docker start absolutejs-queue-test-pg >/dev/null 2>&1 || docker run -d --name absolutejs-queue-test-pg -e POSTGRES_PASSWORD=postgres -e POSTGRES_USER=postgres -e POSTGRES_DB=queue_test -p 55444:5432 postgres:15 >/dev/null'",
@@ -83,7 +83,12 @@
 			"import": "./dist/manifest.js",
 			"default": "./dist/manifest.js"
 		},
-		"./manifest.json": "./dist/manifest.json"
+		"./manifest.json": "./dist/manifest.json",
+		"./drizzle": {
+			"types": "./dist/drizzle.d.ts",
+			"import": "./dist/drizzle.js",
+			"default": "./dist/drizzle.js"
+		}
 	},
 	"files": [
 		"CHANGELOG.md",
