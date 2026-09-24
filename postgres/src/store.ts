@@ -49,6 +49,7 @@ export const buildPostgresJobStore = <
 	const validators = compileJobValidators(definition);
 
 	return {
+		supportsKindFiltering: true,
 		cancel: async (id) => {
 			const updated = await db
 				.update(queueJobsTable)
@@ -68,7 +69,7 @@ export const buildPostgresJobStore = <
 
 			return updated.length > 0;
 		},
-		claimDue: async ({ limit, now, workerId }) =>
+		claimDue: async ({ kinds, limit, now, workerId }) =>
 			db.transaction(async (tx) => {
 				const due = await tx
 					.select()
@@ -76,6 +77,14 @@ export const buildPostgresJobStore = <
 					.where(
 						and(
 							eq(queueJobsTable.status, 'pending'),
+							inArray(
+								queueJobsTable.kind,
+								Object.keys(definition).filter(
+									(kind) =>
+										kinds === undefined ||
+										kinds.includes(kind)
+								)
+							),
 							lte(queueJobsTable.runAt, now)
 						)
 					)
