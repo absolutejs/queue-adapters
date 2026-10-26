@@ -1,3 +1,7 @@
+## 0.1.9
+
+- Accept `@absolutejs/queue` 0.9 and 0.10 as peers; the store's tests run against 0.10.1. 0.1.8's `<0.9.0` range kept consumers on queue 0.10 on 0.1.5, whose claims ignore the worker's handler kinds and dead-letter other workers' jobs.
+
 ## 0.1.8
 
 - Add a driver-neutral `/drizzle` entry point for stores and schema exports without loading optional connection drivers.
